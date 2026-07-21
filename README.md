@@ -2,8 +2,8 @@
 
 ## Estudiantes
 
-- Nombre: Juan Esteban Palacio Betancur
-- Nombre: Thomas Alejandro Serna Saldarriaga
+- Juan Esteban Palacio Betancur
+- Thomas Alejandro Serna Saldarriaga
 
 ## Descripción
 
