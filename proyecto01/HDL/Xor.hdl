@@ -3,7 +3,6 @@ CHIP Xor {
     OUT out;
 
     PARTS:
-    
     Not(in=a, out=NotA);
     Not(in=b, out=NotB);
 
