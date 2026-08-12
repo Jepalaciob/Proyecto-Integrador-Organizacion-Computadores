@@ -1,6 +1,7 @@
-CHIP ALU {
+CHIP ALUExtendida {
     IN  
         x[16], y[16], 
+        a,
         zx, 
         nx, 
         zy, 
@@ -34,6 +35,11 @@ CHIP ALU {
     
     Mux16(a=outF0, b=outF1, sel=f, out=out1);
 
+    // no: out = !out
+    Not16(in=out1, out=notOut1);
+
+    Mux16(a=out1, b=notOut1, sel=no, out=out11);
+
     // ALU extendida
     Not(in=zx, out=notZx);
     Not(in=nx, out=notNx);
@@ -50,7 +56,7 @@ CHIP ALU {
     And(a=xor4, b=notNo, out=isXor);
 
     Xor16(a=x, b=y, out=XorOut);
-    Mux16(a=out1, b=XorOut, sel=isXor, out=out2);
+    Mux16(a=out11, b=XorOut, sel=isXor, out=out2);
 
     // NAnd: Codigo 000001
     And(a=notZx, b=notNx, out=Nand1);
@@ -98,14 +104,10 @@ CHIP ALU {
     And(a=Abs3, b=f, out=Abs4);
     And(a=Abs4, b=notNo, out=isAbs);
 
-    And16(a=NorOut, b[0..14]=true, b[15]=false, out=AbsOut);
+    Not16(in=x, out=notX);
+    Inc16(in=notX, out=AbsOut);
 
-    Mux16(a=out5, b=AbsOut, sel=isAbs, out=innerOut);
-
-    // no: out = !out
-    Not16(in=innerOut, out=notInnerOut);
-
-    Mux16(a=innerOut, b=notInnerOut, sel=no, out=out, out[0..7]=outP1, out[8..15]=outP2, out[15]=sign);
+    Mux16(a=out5, b=AbsOut, sel=isAbs, out=out, out[0..7]=outP1, out[8..15]=outP2, out[15]=sign);
 
     // zr: out == 0
     Or8Way(in=outP1, out=Or8Way1);
