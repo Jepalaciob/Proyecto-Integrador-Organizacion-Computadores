@@ -1,0 +1,120 @@
+CHIP ALU {
+    IN  
+        x[16], y[16], 
+        zx, 
+        nx, 
+        zy, 
+        ny, 
+        f,  
+        no; 
+    OUT 
+        out[16], 
+        zr,      
+        ng;      
+
+    PARTS:
+
+    // zx: x = 0
+    Mux16(a=x, b=false, sel=zx, out=x1);
+
+    // nx: !x 
+    Not16(in=x1, out=x2);
+    Mux16(a=x1, b=x2, sel=nx, out=x3);
+
+    // zy: y = 0
+    Mux16(a=y, b=false, sel=zy, out=y1);
+
+    // ny: !y
+    Not16(in=y1, out=y2);
+    Mux16(a=y1, b=y2, sel=ny, out=y3);
+
+    // f: out = x & y | out = x + y
+    And16(a=x3, b=y3, out=outF0);
+    Add16(a=x3, b=y3, out=outF1);
+    
+    Mux16(a=outF0, b=outF1, sel=f, out=out1);
+
+    // ALU extendida
+    Not(in=zx, out=notZx);
+    Not(in=nx, out=notNx);
+    Not(in=zy, out=notZy);
+    Not(in=ny, out=notNy);
+    Not(in=f, out=notF);
+    Not(in=no, out=notNo);
+
+    // XOr: Codigo 010110
+    And(a=notZx, b=nx, out=xor1);
+    And(a=xor1, b=notZy, out=xor2);
+    And(a=xor2, b=ny, out=xor3);
+    And(a=xor3, b=f, out=xor4);
+    And(a=xor4, b=notNo, out=isXor);
+
+    Xor16(a=x, b=y, out=XorOut);
+    Mux16(a=out1, b=XorOut, sel=isXor, out=out2);
+
+    // NAnd: Codigo 000001
+    And(a=notZx, b=notNx, out=Nand1);
+    And(a=Nand1, b=notZy, out=Nand2);
+    And(a=Nand2, b=notNy, out=Nand3);
+    And(a=Nand3, b=notF, out=Nand4);
+    And(a=Nand4, b=no, out=isNand);
+
+    Nand16(a=x, b=y, out=NandOut);
+    Mux16(a=out2, b=NandOut, sel=isNand, out=out3);
+
+    // Nor: Codigo 110100
+    And(a=zx, b=nx, out=Nor1);
+    And(a=Nor1, b=notZy, out=Nor2);
+    And(a=Nor2, b=ny, out=Nor3);
+    And(a=Nor3, b=notF, out=Nor4);
+    And(a=Nor4, b=notNo, out=isNor);
+
+    Or16(a=x, b=y, out=NorOrOut);
+    Not16(in=NorOrOut, out=NorOut);
+    Mux16(a=out3, b=NorOut, sel=isNor, out=out4);
+
+    // Eq: Codigo 101000
+    And(a=zx, b=notNx, out=Eq1);
+    And(a=Eq1, b=zy, out=Eq2);
+    And(a=Eq2, b=notNy, out=Eq3);
+    And(a=Eq3, b=notF, out=Eq4);
+    And(a=Eq4, b=notNo, out=isEq);
+
+    XOr16(a=x, b=y, out[0..7]=EqXorOutP1, out[8..15]=EqXorOutP2);
+
+    Or8Way(in=EqXorOutP1, out=EqOr1);
+    Or8Way(in=EqXorOutP2, out=EqOr2);
+    Or(a=EqOr1, b=EqOr2, out=EqDifferent);
+    Not(in=EqDifferent, out=EqEqual);
+
+    Mux16(a=false, b[0]=true, b[1..15]=false, sel=EqEqual, out=EqOut);
+
+    Mux16(a=out4, b=EqOut, sel=isEq, out=out5);
+
+    // Abs: Codigo 100010
+    And(a=zx, b=notNx, out=Abs1);
+    And(a=Abs1, b=notZy, out=Abs2);
+    And(a=Abs2, b=notNy, out=Abs3);
+    And(a=Abs3, b=f, out=Abs4);
+    And(a=Abs4, b=notNo, out=isAbs);
+
+    And16(a=NorOut, b[0..14]=true, b[15]=false, out=AbsOut);
+
+    Mux16(a=out5, b=AbsOut, sel=isAbs, out=innerOut);
+
+    // no: out = !out
+    Not16(in=innerOut, out=notInnerOut);
+
+    Mux16(a=innerOut, b=notInnerOut, sel=no, out=out, out[0..7]=outP1, out[8..15]=outP2, out[15]=sign);
+
+    // zr: out == 0
+    Or8Way(in=outP1, out=Or8Way1);
+    Or8Way(in=outP2, out=Or8Way2);
+
+    Or(a=Or8Way1, b=Or8Way2, out=OrInZr);
+    Not(in=OrInZr, out=zr);
+
+    // ng: out < 0
+    Or(a=sign, b=false, out=ng);
+
+}
