@@ -79,13 +79,20 @@ Implementación de componentes secuenciales y memoria.
 La ALUExtendida conserva la interfaz de la ALU original de Nand2Tetris y
 agrega cinco operaciones nuevas.
 
+### Documentación
+
+La explicación de la implementación de las operaciones de la ALUExtendida se
+encuentra en:
+
+`alu_extendida/DOCUMENTACION/ALUExtendida.md`
+
 ### Operaciones soportadas
 
-- XOR
-- NAND
-- NOR
-- EQ
-- ABS
+- XOR — `010110`
+- NAND — `000001`
+- NOR — `110100`
+- EQ — `101000`
+- ABS — `100010`
 
 ---
 
